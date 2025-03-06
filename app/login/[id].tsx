@@ -1,9 +1,13 @@
-import React, { useState } from 'react';
-import { View, TextInput, Text, TouchableOpacity } from 'react-native';
+import React, { useContext, useState } from 'react';
+import { View, TextInput, Text, TouchableOpacity, Alert, StyleSheet } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import CustomButton from '../../components/CustumButton';
+import { useRouter } from 'expo-router';
+import { loginUser } from '../api/api';
+import { AuthContext } from '../../context/AuthContext';
 
 const schema = yup.object().shape({
   email: yup.string().email('Email inválido').required('El email es obligatorio'),
@@ -20,9 +24,30 @@ const LoginScreen = () => {
   const { control, handleSubmit, formState: { errors } } = useForm({
     resolver: yupResolver(schema)
   });
+  const [email, setEmail] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
+  const { setToken } = useContext(AuthContext);
+  const router = useRouter();
 
-  const onSubmit = (data: FormData) => {
-    console.log('Login exitoso:', data);
+  const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert('Error', 'Por favor, ingresa email y contraseña.');
+      return;
+    }
+    try {
+      const data = await loginUser(email, password);
+      // Suponemos que la respuesta tiene la propiedad access_token
+      setToken(data.access_token);
+      Alert.alert('Éxito', 'Inicio de sesión exitoso.');
+      // Redirige a la pantalla principal (por ejemplo, FeedScreen)
+      router.push({
+        pathname: "profile/[id]",
+        // params: { token: userId },
+      })
+    } catch (error: any) {
+      console.error('Error al iniciar sesión:', error);
+      Alert.alert('Error', error.response?.data?.message || 'Error al iniciar sesión');
+    }
   };
 
   return (
@@ -66,13 +91,48 @@ const LoginScreen = () => {
         )}
       />
       {errors.password && <Text style={{ color: 'red' }}>{errors.password.message}</Text>}
-
-      <TouchableOpacity onPress={handleSubmit(onSubmit)} style={{ backgroundColor: 'blue', padding: 10, marginTop: 20 }}>
-        <Text style={{ color: 'white', textAlign: 'center' }}>Iniciar sesión</Text>
-      </TouchableOpacity>
+      <View style={styles.linkContainer}>
+        <Text style={styles.link} onPress={() => router.push('/passwordReset')}>
+          ¿Olvidaste tu contraseña?
+        </Text>
+      </View>
+      <CustomButton
+            title="Log in"
+            onPress={handleSubmit(handleLogin)}
+          ></CustomButton>
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    paddingHorizontal: 20,
+    backgroundColor: "#fff"
+  },
+  title: {
+    fontSize: 24,
+    marginBottom: 20,
+    color: "#0077CC",
+    textAlign: "center"
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 5,
+    padding: 10,
+    marginBottom: 15
+  },
+  linkContainer: {
+    marginTop: 10,
+    alignItems: "center"
+  },
+  link: {
+    color: "#0077CC",
+    textDecorationLine: "underline"
+  }
+});
 
 export default LoginScreen;
 

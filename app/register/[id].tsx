@@ -4,6 +4,8 @@ import { useForm, Controller } from 'react-hook-form';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import CustomButton from '../../components/CustumButton';
+import { registerUser } from '../api/api';
 
 const schema = yup.object().shape({
   email: yup.string().email('Email inválido').required('El email es obligatorio'),
@@ -32,14 +34,14 @@ const RegisterScreen = () => {
   };
 
   return (
-    <View style={{ padding: 20 }}>
+    <View style={{ padding: 20, flex: 1, justifyContent: 'center', alignItems: 'center' }}>
       <Text>Email:</Text>
       <Controller
         control={control}
         name="email"
         render={({ field: { onChange, onBlur, value } }) => (
           <TextInput
-            style={{ borderBottomWidth: 1, marginBottom: 10 }}
+            style={{ borderBottomWidth: 1, marginBottom: 10, width: '100%' }}
             placeholder="Ingrese su email"
             keyboardType="email-address"
             autoCapitalize="none"
@@ -95,11 +97,15 @@ const RegisterScreen = () => {
       />
       {errors.confirmPassword && <Text style={{ color: 'red' }}>{errors.confirmPassword.message}</Text>}
 
-      <TouchableOpacity onPress={handleSubmit(onSubmit)} style={{ backgroundColor: 'blue', padding: 10, marginTop: 20 }}>
-        <Text style={{ color: 'white', textAlign: 'center' }}>Registrarse</Text>
-      </TouchableOpacity>
+      <CustomButton
+            title="Sign up"
+            onPress={handleSubmit(onSubmit)}
+          ></CustomButton>
     </View>
   );
 };
 
 export default RegisterScreen;
+
+
+// 
